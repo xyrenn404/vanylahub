@@ -96,23 +96,32 @@ local function ultraOptimize()
     isUltraMode = true
 end
 
-local function showBarrier(part)
-    if part:IsA("BasePart") and part.Transparency == 1 and part.CanCollide then
-        part.Transparency = 0.5
-        part.Color = Color3.fromRGB(255,0,0)
-        part.Material = Enum.Material.Neon
+local function markBarrier(part)
+    if part:IsA("BasePart") and part.CanCollide and part.Transparency == 1 then
+        if not Workspace:FindFirstChild(part.Name.."_BarrierClone") then
+            local clone = Instance.new("Part")
+            clone.Name = part.Name.."_BarrierClone"
+            clone.Size = part.Size
+            clone.CFrame = part.CFrame
+            clone.Anchored = true
+            clone.CanCollide = false
+            clone.Transparency = 0.5
+            clone.Color = Color3.fromRGB(255,0,0)
+            clone.Material = Enum.Material.Neon
+            clone.Parent = Workspace
+        end
     end
 end
 
 local function detectBarriers()
     for _, obj in pairs(Workspace:GetDescendants()) do
-        showBarrier(obj)
+        markBarrier(obj)
     end
     Workspace.DescendantAdded:Connect(function(obj)
-        showBarrier(obj)
+        markBarrier(obj)
     end)
 end
 
 ultraOptimize()
 detectBarriers()
-print("Ultra Optimize Active + Barrier Visible")
+print("Ultra Optimize Active + Barrier Clone Detector Enabled")
