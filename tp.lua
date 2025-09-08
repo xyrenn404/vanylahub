@@ -4,18 +4,23 @@ local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
 
 local checkpoints = {}
+
 for _, obj in ipairs(workspace:GetDescendants()) do
-    if obj:IsA("BasePart") and obj:FindFirstChildOfClass("TouchTransmitter") then
-        table.insert(checkpoints, obj)
+    if obj:IsA("BasePart") then
+        if obj:FindFirstChildOfClass("TouchTransmitter") then
+            warn("Checkpoint Touch ditemukan:", obj:GetFullName())
+            table.insert(checkpoints, obj)
+        elseif obj:FindFirstChildOfClass("ProximityPrompt") then
+            warn("Checkpoint Prompt ditemukan:", obj:GetFullName())
+            table.insert(checkpoints, obj)
+        end
     end
 end
 
--- urutkan dari rendah ke tinggi (stage biasanya makin tinggi posisinya)
 table.sort(checkpoints, function(a, b)
     return a.Position.Y < b.Position.Y
 end)
 
--- GUI
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 local frame = Instance.new("Frame", screenGui)
 frame.Size = UDim2.new(0, 200, 0, 300)
@@ -34,8 +39,12 @@ for i, cp in ipairs(checkpoints) do
 
     btn.MouseButton1Click:Connect(function()
         hrp.CFrame = cp.CFrame + Vector3.new(0,3,0)
-        firetouchinterest(hrp, cp, 0) -- simulasi sentuh
-        task.wait(0.1)
-        firetouchinterest(hrp, cp, 1)
+        if cp:FindFirstChildOfClass("TouchTransmitter") then
+            firetouchinterest(hrp, cp, 0)
+            task.wait(0.1)
+            firetouchinterest(hrp, cp, 1)
+        elseif cp:FindFirstChildOfClass("ProximityPrompt") then
+            fireproximityprompt(cp:FindFirstChildOfClass("ProximityPrompt"))
+        end
     end)
 end
