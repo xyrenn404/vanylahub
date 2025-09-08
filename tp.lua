@@ -60,7 +60,7 @@ for i, cp in ipairs(checkpoints) do
     btn.TextColor3 = Color3.new(1,1,1)
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 14
-    btn.Text = "Checkpoint " .. i
+    btn.Text = "Pos " .. i  -- Label tombol sesuai permintaan
 
     btn.MouseButton1Click:Connect(function()
         if hrp and cp then
