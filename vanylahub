@@ -1,5 +1,6 @@
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
 
 local function ultraOptimize()
     Workspace.StreamingEnabled = true
@@ -54,6 +55,8 @@ local function ultraOptimize()
             obj.Density = 0
         elseif obj:IsA("Wind") then
             obj.Enabled = false
+            obj.Strength = 0
+            obj.Speed = 0
         elseif obj:IsA("Sound") and obj.IsPlaying then
             obj.Volume = 0
         elseif obj:IsA("Terrain") then
@@ -68,3 +71,4 @@ local function ultraOptimize()
 end
 
 ultraOptimize()
+RunService.Heartbeat:Connect(ultraOptimize)
