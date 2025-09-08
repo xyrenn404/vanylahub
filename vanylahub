@@ -3,64 +3,16 @@ local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 
-local optimizedParts = {}
-local isUltraMode = false
-
-local function optimizePerformance()
-    Workspace.StreamingEnabled = true
-    Lighting.GlobalShadows = false
-    Lighting.Technology = Enum.Technology.Compatibility
-    Lighting.FogEnd = 1000000
-    Lighting.FogStart = 1000000
-    Lighting.FogColor = Color3.fromRGB(255, 255, 255)
-    Lighting.Brightness = 3
-    Lighting.Ambient = Color3.fromRGB(128, 128, 128)
-    Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-    Lighting.ClockTime = 14
-    Lighting.ShadowSoftness = 0
-    pcall(function()
-        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-        settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
-        settings().Rendering.GraphicsMode = Enum.GraphicsMode.Direct3D9
-    end)
-    local partCount = 0
-    for _, obj in pairs(Workspace:GetDescendants()) do
-        if obj:IsA("BasePart") then
-            obj.TopSurface = Enum.SurfaceType.Smooth
-            obj.BottomSurface = Enum.SurfaceType.Smooth
-            obj.LeftSurface = Enum.SurfaceType.Smooth
-            obj.RightSurface = Enum.SurfaceType.Smooth
-            obj.FrontSurface = Enum.SurfaceType.Smooth
-            obj.BackSurface = Enum.SurfaceType.Smooth
-            obj.Material = Enum.Material.SmoothPlastic
-            obj.CastShadow = false
-            table.insert(optimizedParts, obj)
-        elseif obj:IsA("Texture") or obj:IsA("Decal") then
-            obj.Transparency = math.max(obj.Transparency, 0.1)
-        elseif obj:IsA("ParticleEmitter") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
-            obj.Enabled = false
-        elseif obj:IsA("Atmosphere") then
-            obj.Density = 0
-            obj.Offset = 0
-            obj.Color = Color3.fromRGB(255, 255, 255)
-            obj.Decay = Color3.fromRGB(255, 255, 255)
-            obj.Glare = 0
-            obj.Haze = 0
-        elseif obj:IsA("Clouds") then
-            obj.Enabled = false
-            obj.Density = 0
-        elseif obj:IsA("BloomEffect") or obj:IsA("BlurEffect") or obj:IsA("ColorCorrectionEffect") then
-            obj.Enabled = false
-        end
-        if partCount % 100 == 0 then task.wait() end
-        partCount += 1
-    end
-end
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
 
 local function ultraOptimize()
-    if isUltraMode then return end
-    optimizePerformance()
+    Workspace.StreamingEnabled = true
+    Lighting.GlobalShadows = false
     Lighting.Technology = Enum.Technology.Legacy
+    Lighting.FogEnd = 1000000
+    Lighting.FogStart = 1000000
     Lighting.Brightness = 5
     Lighting.Ambient = Color3.fromRGB(178, 178, 178)
     Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
@@ -73,15 +25,28 @@ local function ultraOptimize()
         settings().Physics.AllowSleep = true
         settings().Physics.ThrottleAdjustTime = 0
     end)
-    for _, obj in pairs(optimizedParts) do
-        if obj and obj.Parent then
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("BasePart") then
             obj.Material = Enum.Material.Plastic
             obj.Reflectance = 0
             obj.CastShadow = false
-        end
-    end
-    for _, obj in pairs(Workspace:GetDescendants()) do
-        if obj:IsA("Sound") and obj.IsPlaying then
+        elseif obj:IsA("Decal") or obj:IsA("Texture") then
+            obj.Transparency = 1
+        elseif obj:IsA("ParticleEmitter") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
+            obj.Enabled = false
+        elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") or obj:IsA("BloomEffect") or obj:IsA("BlurEffect") or obj:IsA("ColorCorrectionEffect") then
+            obj.Enabled = false
+        elseif obj:IsA("Atmosphere") then
+            obj.Density = 0
+            obj.Offset = 0
+            obj.Glare = 0
+            obj.Haze = 0
+        elseif obj:IsA("Clouds") then
+            obj.Enabled = false
+            obj.Density = 0
+        elseif obj:IsA("Wind") then
+            obj.Enabled = false
+        elseif obj:IsA("Sound") and obj.IsPlaying then
             obj.Volume = 0
         elseif obj:IsA("Terrain") then
             obj.WaterWaveSize = 0
@@ -92,36 +57,37 @@ local function ultraOptimize()
             obj:ReplaceMaterial(Enum.Material.Grass, Enum.Material.SmoothPlastic)
         end
     end
-    collectgarbage("collect")
-    isUltraMode = true
 end
 
-local function markBarrier(part)
-    if part:IsA("BasePart") and part.CanCollide and part.Transparency == 1 then
-        if not Workspace:FindFirstChild(part.Name.."_BarrierClone") then
-            local clone = Instance.new("Part")
-            clone.Name = part.Name.."_BarrierClone"
-            clone.Size = part.Size
-            clone.CFrame = part.CFrame
-            clone.Anchored = true
-            clone.CanCollide = false
-            clone.Transparency = 0.5
-            clone.Color = Color3.fromRGB(255,0,0)
-            clone.Material = Enum.Material.Neon
-            clone.Parent = Workspace
+ultraOptimize()
+
+local range = 20
+local rays = 36
+
+local function scanBarriers()
+    for _, v in pairs(Workspace:GetChildren()) do
+        if v.Name == "BarrierMarker" then
+            v:Destroy()
+        end
+    end
+    for i = 1, rays do
+        local angle = math.rad((i / rays) * 360)
+        local direction = Vector3.new(math.cos(angle), 0, math.sin(angle)) * range
+        local ray = Ray.new(hrp.Position, direction)
+        local part, pos = Workspace:FindPartOnRay(ray, character)
+        if part and part.CanCollide then
+            local marker = Instance.new("Part")
+            marker.Name = "BarrierMarker"
+            marker.Size = Vector3.new(1,1,1)
+            marker.Anchored = true
+            marker.CanCollide = false
+            marker.Color = Color3.fromRGB(255,0,0)
+            marker.Material = Enum.Material.Neon
+            marker.Transparency = 0
+            marker.CFrame = CFrame.new(pos)
+            marker.Parent = Workspace
         end
     end
 end
 
-local function detectBarriers()
-    for _, obj in pairs(Workspace:GetDescendants()) do
-        markBarrier(obj)
-    end
-    Workspace.DescendantAdded:Connect(function(obj)
-        markBarrier(obj)
-    end)
-end
-
-ultraOptimize()
-detectBarriers()
-print("Ultra Optimize Active + Barrier Clone Detector Enabled")
+RunService.RenderStepped:Connect(scanBarriers)
