@@ -96,30 +96,23 @@ local function ultraOptimize()
     isUltraMode = true
 end
 
-local function highlightBarrier(part)
-    if not part:IsA("BasePart") then return end
-    if part.Transparency == 1 and part.CanCollide then
-        if not part:FindFirstChild("BarrierHighlight") then
-            local hl = Instance.new("Highlight")
-            hl.Name = "BarrierHighlight"
-            hl.FillColor = Color3.fromRGB(255, 0, 0)
-            hl.FillTransparency = 0.8
-            hl.OutlineColor = Color3.fromRGB(255, 50, 50)
-            hl.Adornee = part
-            hl.Parent = part
-        end
+local function showBarrier(part)
+    if part:IsA("BasePart") and part.Transparency == 1 and part.CanCollide then
+        part.Transparency = 0.5
+        part.Color = Color3.fromRGB(255,0,0)
+        part.Material = Enum.Material.Neon
     end
 end
 
 local function detectBarriers()
     for _, obj in pairs(Workspace:GetDescendants()) do
-        highlightBarrier(obj)
+        showBarrier(obj)
     end
     Workspace.DescendantAdded:Connect(function(obj)
-        highlightBarrier(obj)
+        showBarrier(obj)
     end)
 end
 
 ultraOptimize()
 detectBarriers()
-print("Ultra Optimize Active + Barrier Detector Enabled")
+print("Ultra Optimize Active + Barrier Visible")
