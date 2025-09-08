@@ -1,11 +1,8 @@
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
 
 local function ultraOptimize()
     Workspace.StreamingEnabled = true
@@ -52,7 +49,7 @@ local function ultraOptimize()
             obj.WaterWaveSize = 0
             obj.WaterWaveSpeed = 0
             obj.WaterReflectance = 0
-            obj.WaterTransparency = 0.5
+            obj.WaterTransparency = 0.3
             obj.WaterColor = Color3.fromRGB(0, 150, 255)
             obj:ReplaceMaterial(Enum.Material.Grass, Enum.Material.SmoothPlastic)
         end
@@ -60,34 +57,3 @@ local function ultraOptimize()
 end
 
 ultraOptimize()
-
-local range = 20
-local rays = 36
-
-local function scanBarriers()
-    for _, v in pairs(Workspace:GetChildren()) do
-        if v.Name == "BarrierMarker" then
-            v:Destroy()
-        end
-    end
-    for i = 1, rays do
-        local angle = math.rad((i / rays) * 360)
-        local direction = Vector3.new(math.cos(angle), 0, math.sin(angle)) * range
-        local ray = Ray.new(hrp.Position, direction)
-        local part, pos = Workspace:FindPartOnRay(ray, character)
-        if part and part.CanCollide then
-            local marker = Instance.new("Part")
-            marker.Name = "BarrierMarker"
-            marker.Size = Vector3.new(1,1,1)
-            marker.Anchored = true
-            marker.CanCollide = false
-            marker.Color = Color3.fromRGB(255,0,0)
-            marker.Material = Enum.Material.Neon
-            marker.Transparency = 0
-            marker.CFrame = CFrame.new(pos)
-            marker.Parent = Workspace
-        end
-    end
-end
-
-RunService.RenderStepped:Connect(scanBarriers)
