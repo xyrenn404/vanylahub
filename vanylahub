@@ -1,8 +1,5 @@
-local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
-
-local player = Players.LocalPlayer
 
 local function ultraOptimize()
     Workspace.StreamingEnabled = true
@@ -15,6 +12,7 @@ local function ultraOptimize()
     Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
     Lighting.ColorShift_Bottom = Color3.fromRGB(255, 255, 255)
     Lighting.ColorShift_Top = Color3.fromRGB(255, 255, 255)
+
     pcall(function()
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
         settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
@@ -22,11 +20,24 @@ local function ultraOptimize()
         settings().Physics.AllowSleep = true
         settings().Physics.ThrottleAdjustTime = 0
     end)
+
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("BasePart") then
             obj.Material = Enum.Material.Plastic
             obj.Reflectance = 0
             obj.CastShadow = false
+
+            local lname = obj.Name:lower()
+            if lname:find("water") or lname:find("ocean") or lname:find("sea") or lname:find("lake") then
+                obj.Color = Color3.fromRGB(0,150,255)
+                obj.Material = Enum.Material.SmoothPlastic
+                obj.Transparency = 0.3
+                for _, child in pairs(obj:GetChildren()) do
+                    if child:IsA("SurfaceAppearance") or child:IsA("Decal") or child:IsA("Texture") then
+                        child:Destroy()
+                    end
+                end
+            end
         elseif obj:IsA("Decal") or obj:IsA("Texture") then
             obj.Transparency = 1
         elseif obj:IsA("ParticleEmitter") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
@@ -50,7 +61,7 @@ local function ultraOptimize()
             obj.WaterWaveSpeed = 0
             obj.WaterReflectance = 0
             obj.WaterTransparency = 0.3
-            obj.WaterColor = Color3.fromRGB(0, 150, 255)
+            obj.WaterColor = Color3.fromRGB(0,150,255)
             obj:ReplaceMaterial(Enum.Material.Grass, Enum.Material.SmoothPlastic)
         end
     end
