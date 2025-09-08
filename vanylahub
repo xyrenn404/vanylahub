@@ -1,6 +1,3 @@
--- NEBULA CLIENT Ultra Auto-Optimizer (No GUI)
--- Langsung aktif Ultra Mode tanpa reset/GUI
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
@@ -9,12 +6,8 @@ local Workspace = game:GetService("Workspace")
 local optimizedParts = {}
 local isUltraMode = false
 
--- Optimasi dasar
 local function optimizePerformance()
-    -- Workspace
     Workspace.StreamingEnabled = true
-
-    -- Lighting
     Lighting.GlobalShadows = false
     Lighting.Technology = Enum.Technology.Compatibility
     Lighting.FogEnd = 1000000
@@ -25,15 +18,11 @@ local function optimizePerformance()
     Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
     Lighting.ClockTime = 14
     Lighting.ShadowSoftness = 0
-
-    -- Rendering
     pcall(function()
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
         settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
         settings().Rendering.GraphicsMode = Enum.GraphicsMode.Direct3D9
     end)
-
-    -- Optimasi part & efek
     local partCount = 0
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("BasePart") then
@@ -43,18 +32,13 @@ local function optimizePerformance()
             obj.RightSurface = Enum.SurfaceType.Smooth
             obj.FrontSurface = Enum.SurfaceType.Smooth
             obj.BackSurface = Enum.SurfaceType.Smooth
-
             obj.Material = Enum.Material.SmoothPlastic
             obj.CastShadow = false
-
             table.insert(optimizedParts, obj)
-
         elseif obj:IsA("Texture") or obj:IsA("Decal") then
             obj.Transparency = math.max(obj.Transparency, 0.1)
-
         elseif obj:IsA("ParticleEmitter") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
             obj.Enabled = false
-
         elseif obj:IsA("Atmosphere") then
             obj.Density = 0
             obj.Offset = 0
@@ -62,34 +46,26 @@ local function optimizePerformance()
             obj.Decay = Color3.fromRGB(255, 255, 255)
             obj.Glare = 0
             obj.Haze = 0
-
         elseif obj:IsA("Clouds") then
             obj.Enabled = false
             obj.Density = 0
-
         elseif obj:IsA("BloomEffect") or obj:IsA("BlurEffect") or obj:IsA("ColorCorrectionEffect") then
             obj.Enabled = false
         end
-
         if partCount % 100 == 0 then task.wait() end
         partCount += 1
     end
 end
 
--- Ultra Optimize langsung
 local function ultraOptimize()
     if isUltraMode then return end
     optimizePerformance()
-
-    -- Lighting lebih ekstrim
     Lighting.Technology = Enum.Technology.Legacy
     Lighting.Brightness = 5
     Lighting.Ambient = Color3.fromRGB(178, 178, 178)
     Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
     Lighting.ColorShift_Bottom = Color3.fromRGB(255, 255, 255)
     Lighting.ColorShift_Top = Color3.fromRGB(255, 255, 255)
-
-    -- Rendering agresif
     pcall(function()
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
         settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
@@ -97,8 +73,6 @@ local function ultraOptimize()
         settings().Physics.AllowSleep = true
         settings().Physics.ThrottleAdjustTime = 0
     end)
-
-    -- Optimasi ulang parts
     for _, obj in pairs(optimizedParts) do
         if obj and obj.Parent then
             obj.Material = Enum.Material.Plastic
@@ -106,8 +80,6 @@ local function ultraOptimize()
             obj.CastShadow = false
         end
     end
-
-    -- Efek tambahan
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("Sound") and obj.IsPlaying then
             obj.Volume = 0
@@ -120,11 +92,34 @@ local function ultraOptimize()
             obj:ReplaceMaterial(Enum.Material.Grass, Enum.Material.SmoothPlastic)
         end
     end
-
     collectgarbage("collect")
     isUltraMode = true
-    print("✅ Ultra Optimize Active")
 end
 
--- Eksekusi langsung
+local function highlightBarrier(part)
+    if not part:IsA("BasePart") then return end
+    if part.Transparency == 1 and part.CanCollide then
+        if not part:FindFirstChild("BarrierHighlight") then
+            local hl = Instance.new("Highlight")
+            hl.Name = "BarrierHighlight"
+            hl.FillColor = Color3.fromRGB(255, 0, 0)
+            hl.FillTransparency = 0.8
+            hl.OutlineColor = Color3.fromRGB(255, 50, 50)
+            hl.Adornee = part
+            hl.Parent = part
+        end
+    end
+end
+
+local function detectBarriers()
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        highlightBarrier(obj)
+    end
+    Workspace.DescendantAdded:Connect(function(obj)
+        highlightBarrier(obj)
+    end)
+end
+
 ultraOptimize()
+detectBarriers()
+print("Ultra Optimize Active + Barrier Detector Enabled")
